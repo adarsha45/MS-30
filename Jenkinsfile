@@ -21,14 +21,6 @@ node{
         sh "chmod +x ${PKG_PATH}/main/default/ada.sh"
         sh "${PKG_PATH}/main/default/ada.sh"
     }
-    withCredentials([file(credentialsId: SERVER_KEY_CREDENTALS_ID, variable: 'server_key_file')]) {
-        stage('Authorize DevHub') {
-             rc = command "sfdx force:auth:jwt:grant --instanceurl ${SF_INSTANCE_URL} --clientid ${SF_CONSUMER_KEY} --username ${SF_USERNAME} --jwtkeyfile ${server_key_file} --setdefaultdevhubusername --setalias ${SF_DEV_HUB_ALIAS}"
-             if (rc != 0) {
-                 error 'Salesforce dev hub org authorization failed.'
-             }
-         }
-        }
 
     stage('Verify Featurebranch'){
         properties([
@@ -37,8 +29,16 @@ node{
             ])
         ])
     }
+    withCredentials([file(credentialsId: SERVER_KEY_CREDENTALS_ID, variable: 'server_key_file')]) {
+        stage('Authorize DevHub') {
+             rc = sh "sfdx force:auth:jwt:grant --instanceurl ${SF_INSTANCE_URL} --clientid ${SF_CONSUMER_KEY} --username ${SF_USERNAME} --jwtkeyfile ${server_key_file} --setdefaultdevhubusername --setalias ${SF_DEV_HUB_ALIAS}"
+             
+             if (rc != 0) {
+                 error 'Salesforce dev hub org authorization failed.'
+             }
+         }
+        }
 
-    
     stage("Validate Main Package"){
         try{
             sh "sfdx force:source:deploy -p ${PKG_PATH} --targetusername ${SF_USERNAME} --testlevel RunLocalTests -c"
