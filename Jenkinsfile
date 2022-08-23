@@ -22,7 +22,6 @@ node{
         sh "chmod +x ${PKG_PATH}/main/default/ada.sh"
         sh "${PKG_PATH}/main/default/ada.sh"
     }
-
     stage('Verify Featurebranch'){
         properties([
             parameters([
@@ -31,15 +30,22 @@ node{
         ])
         sh " echo ${params.Featurebranchname}"
     }
+    
     withCredentials([file(credentialsId: SERVER_KEY_CREDENTALS_ID, variable: 'server_key_file')]) {
+
         stage('Authorize DevHub') {
-             rc = sh "sfdx force:auth:jwt:grant --instanceurl ${SF_INSTANCE_URL} --clientid ${SF_CONSUMER_KEY} --username ${SF_USERNAME} --jwtkeyfile ${server_key_file} --setdefaultdevhubusername --setalias ${SF_DEV_HUB_ALIAS}"
-             
-             if (rc != 0) {
-                 error 'Salesforce dev hub org authorization failed.'
-             }
+            try{
+                rc = sh "sfdx force:auth:jwt:grant --instanceurl ${SF_INSTANCE_URL} --clientid ${SF_CONSUMER_KEY} --username ${SF_USERNAME} --jwtkeyfile ${server_key_file} --setdefaultdevhubusername --setalias ${SF_DEV_HUB_ALIAS}"             
+            }
+            catch(exception){
+                  if(exception){
+                currentBuild.result = "FAILED"
+                throw exception
+                }
+            }
          }
 
+        
         stage("Validate Main Package"){
         try{
             sh "sfdx force:source:deploy -p ${PKG_PATH} --targetusername ${SF_USERNAME} --testlevel RunLocalTests -c"
@@ -48,8 +54,10 @@ node{
                 //sh "sfdx force:mdapi:deploy -d externalPackage -w 100 -u ${VERIFICATION_ORG_ALIAS}"
             }catch(exception){
                 // Since we are using try..catch block have to fail the build manually
-                currentBuild.result = "FAILED"
+                if(exception){
+                    currentBuild.result = "FAILED"
                 throw exception
+                }
             }
         }
         }
