@@ -18,7 +18,7 @@ node{
     stage('checkout source') {
         checkout scm
         echo 'this is adarsha'
-        sh "${PKG_PATH}/main/default/"
+        sh "${PKG_PATH}/main/default/ada.sh"
     }
     withCredentials([file(credentialsId: SERVER_KEY_CREDENTALS_ID, variable: 'server_key_file')]) {
         stage('Authorize DevHub') {
