@@ -18,6 +18,7 @@ node{
     stage('checkout source') {
         checkout scm
         echo 'this is adarsha'
+        echo "${Workspace}"
         sh "chmod +x ${PKG_PATH}/main/default/ada.sh"
         sh "${PKG_PATH}/main/default/ada.sh"
     }
