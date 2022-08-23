@@ -28,7 +28,7 @@ node{
                 string(name:'Featurebranchname',defaultValue:'Feature/MS-1.0.0', description:'Enter Feature Branch Name'),
             ])
         ])
-        sh 'echo ${params.Featurebranchname}'
+        sh " echo ${params.Featurebranchname}"
     }
     withCredentials([file(credentialsId: SERVER_KEY_CREDENTALS_ID, variable: 'server_key_file')]) {
         stage('Authorize DevHub') {
