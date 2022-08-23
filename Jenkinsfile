@@ -6,6 +6,9 @@ node{
     def SF_SCRATCH_ALIAS=env.SF_SCRATCH_ALIAS
     def SF_INSTANCE_URL = env.SF_INSTANCE_URL ?: "https://login.salesforce.com"
     def PKG_PATH = "sfdx-source/force-app"
+    def PKG = "sfdx-source"
+
+
     def Workspace = pwd()
     
     println 'Key is'
@@ -48,7 +51,7 @@ node{
         
         stage("Validate Main Package"){
         try{
-            sh "sfdx force:source:deploy -p ${PKG_PATH} --targetusername ${SF_USERNAME} --testlevel RunLocalTests -c"
+            sh "sfdx force:source:deploy -p ${PKG} --targetusername ${SF_USERNAME} --testlevel RunLocalTests -c"
                 //"sfdx force:source:deploy -p ${PACKAGE_PATH} -l RunLocalTests -w 100 -u ${VERIFICATION_ORG_ALIAS} --verbose" 
                 //sh "sfdx force:source:deploy -p force-app -w 100 -u ${VERIFICATION_ORG_ALIAS}"
                 //sh "sfdx force:mdapi:deploy -d externalPackage -w 100 -u ${VERIFICATION_ORG_ALIAS}"
