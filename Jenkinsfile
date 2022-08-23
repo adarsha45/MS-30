@@ -38,9 +38,8 @@ node{
                  error 'Salesforce dev hub org authorization failed.'
              }
          }
-        }
 
-    stage("Validate Main Package"){
+        stage("Validate Main Package"){
         try{
             sh "sfdx force:source:deploy -p ${PKG_PATH} --targetusername ${SF_USERNAME} --testlevel RunLocalTests -c"
                 //"sfdx force:source:deploy -p ${PACKAGE_PATH} -l RunLocalTests -w 100 -u ${VERIFICATION_ORG_ALIAS} --verbose" 
@@ -52,4 +51,6 @@ node{
                 throw exception
             }
         }
+        }
+
 }
