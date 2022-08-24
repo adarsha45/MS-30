@@ -20,16 +20,16 @@ node{
     
     stage('checkout source') {
         checkout scm
-        echo 'this is adarsha' 
     }
     
     stage('Identify Branch'){
         def branchName=BRANCH_NAME.split('/');
         if(branchName[0] != 'feature'){
             currentBuild.result = 'FAILED'
+            echo('Branch name not matched as expected pattern. Expected pattern is: Feature/ms');
             return 
         }else{
-            error('Branch name matched as expected pattern. Expected pattern is: EXTCQDGNC-XXX');
+            echo('Branch name matched as expected pattern.continue ...');
             }
         }
 
