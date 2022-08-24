@@ -9,13 +9,23 @@ node{
     def PKG = "force-app"
 
     def Workspace = pwd()
-    
+    def BRANCH_NAME = env.BRANCH_NAME
     println 'Key is'
     println SF_CONSUMER_KEY
     println SERVER_KEY_CREDENTALS_ID
     println SF_USERNAME
     println SF_DEV_HUB_ALIAS
     println SF_INSTANCE_URL
+
+    stage('Identify Branch'){
+        def branchName=BRANCH_NAME.split('/');
+        if(branchName[0] != 'feature'){
+            currentBuild.result = 'FAILED'
+            return 
+        }else{
+            error('Branch name matched as expected pattern. Expected pattern is: EXTCQDGNC-XXX');
+            }
+        }
 
     stage('checkout source') {
         checkout scm
@@ -24,15 +34,6 @@ node{
         sh "chmod +x ${PKG_PATH}/main/default/ada.sh"
         sh "${PKG_PATH}/main/default/ada.sh"
     }
-    stage('Verify Featurebranch'){
-        properties([
-            parameters([
-                string(name:'Featurebranchname',defaultValue:'Feature/MS-1.0.0', description:'Enter Feature Branch Name'),
-            ])
-        ])
-        sh " echo ${params.Featurebranchname}"
-    }
-    
     withCredentials([file(credentialsId: SERVER_KEY_CREDENTALS_ID, variable: 'server_key_file')]) {
 
         stage('Authorize DevHub') {
@@ -40,17 +41,16 @@ node{
                 rc = sh "sfdx force:auth:jwt:grant --instanceurl ${SF_INSTANCE_URL} --clientid ${SF_CONSUMER_KEY} --username ${SF_USERNAME} --jwtkeyfile ${server_key_file} --setdefaultdevhubusername --setalias ${SF_DEV_HUB_ALIAS}"             
             }
             catch(exception){
-                  if(exception){
+                if(exception){
                 currentBuild.result = "FAILED"
                 throw exception
-                }
+                  }
             }
          }
 
-        
         stage("Validate Main Package"){
-        try{
-            rc = sh "cd sfdx-source && sfdx force:source:deploy -p ${PKG} -w 100 -u ${SF_USERNAME} --testlevel RunLocalTests -c"
+            try{
+                rc = sh "cd sfdx-source && sfdx force:source:deploy -p ${PKG} -w 100 -u ${SF_USERNAME} --testlevel RunLocalTests -c"
             // sh "sfdx force:source:deploy -p ${PKG} --targetusername ${SF_USERNAME} --testlevel RunLocalTests -c"
                 //"sfdx force:source:deploy -p ${PACKAGE_PATH} -l RunLocalTests -w 100 -u ${VERIFICATION_ORG_ALIAS} --verbose" 
                 //sh "sfdx force:source:deploy -p force-app -w 100 -u ${VERIFICATION_ORG_ALIAS}"
