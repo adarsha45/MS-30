@@ -50,7 +50,7 @@ node{
         
         stage("Validate Main Package"){
         try{
-            rc = sh "cd sfdx-source && sfdx force:source:deploy -p ${PKG} -w 100 -u ${USERNAME} --testlevel RunLocalTests -c"
+            rc = sh "cd sfdx-source && sfdx force:source:deploy -p ${PKG} -w 100 -u ${SF_USERNAME} --testlevel RunLocalTests -c"
             // sh "sfdx force:source:deploy -p ${PKG} --targetusername ${SF_USERNAME} --testlevel RunLocalTests -c"
                 //"sfdx force:source:deploy -p ${PACKAGE_PATH} -l RunLocalTests -w 100 -u ${VERIFICATION_ORG_ALIAS} --verbose" 
                 //sh "sfdx force:source:deploy -p force-app -w 100 -u ${VERIFICATION_ORG_ALIAS}"
