@@ -21,7 +21,7 @@ node{
     stage('checkout source') {
         checkout scm
     }
-    
+
     stage('Identify Branch'){
         def branchName=BRANCH_NAME.split('/');
         if(branchName[0] != 'feature'){
@@ -36,7 +36,7 @@ node{
   
     withCredentials([file(credentialsId: SERVER_KEY_CREDENTALS_ID, variable: 'server_key_file')]) {
 
-        stage('Authorize DevHub') {
+    stage('Authorize DevHub') {
             try{
                 rc = sh "sfdx force:auth:jwt:grant --instanceurl ${SF_INSTANCE_URL} --clientid ${SF_CONSUMER_KEY} --username ${SF_USERNAME} --jwtkeyfile ${server_key_file} --setdefaultdevhubusername --setalias ${SF_DEV_HUB_ALIAS}"             
             }
@@ -46,11 +46,11 @@ node{
                 throw exception
                   }
             }
-         }
+        }
 
-        stage("Validate Main Package"){
-            try{
-                rc = sh "cd sfdx-source && sfdx force:source:deploy -p ${PKG} -w 100 -u ${SF_USERNAME} --testlevel RunLocalTests -c"
+    stage("Validate Main Package"){
+        try{
+            rc = sh "cd sfdx-source && sfdx force:source:deploy -p ${PKG} -w 100 -u ${SF_USERNAME} --testlevel RunLocalTests -c"
             // sh "sfdx force:source:deploy -p ${PKG} --targetusername ${SF_USERNAME} --testlevel RunLocalTests -c"
                 //"sfdx force:source:deploy -p ${PACKAGE_PATH} -l RunLocalTests -w 100 -u ${VERIFICATION_ORG_ALIAS} --verbose" 
                 //sh "sfdx force:source:deploy -p force-app -w 100 -u ${VERIFICATION_ORG_ALIAS}"
