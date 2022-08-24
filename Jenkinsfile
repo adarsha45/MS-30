@@ -6,8 +6,8 @@ node{
     def SF_SCRATCH_ALIAS=env.SF_SCRATCH_ALIAS
     def SF_INSTANCE_URL = env.SF_INSTANCE_URL ?: "https://login.salesforce.com"
     def PKG_PATH = "sfdx-source/force-app"
-    def Workspace = pwd()
-    
+    def PKG = "force-app"
+    def BRANCH_NAME = env.BRANCH_NAME
     println 'Key is'
     println SF_CONSUMER_KEY
     println SERVER_KEY_CREDENTALS_ID
@@ -15,41 +15,50 @@ node{
     println SF_DEV_HUB_ALIAS
     println SF_INSTANCE_URL
 
+    stage('Identify Branch'){
+        def branchName=BRANCH_NAME.split('/');
+        if(branchName[0] != 'feature'){
+            currentBuild.result = 'FAILED'
+            error('Branch name not matched as expected pattern. Expected pattern is: feature/ms');
+            return 
+        }else{
+            echo('Branch name matched as expected pattern');
+            }
+        }
+
     stage('checkout source') {
         checkout scm
         echo 'this is adarsha'
-        sh "${Workspace}"
     }
-
     withCredentials([file(credentialsId: SERVER_KEY_CREDENTALS_ID, variable: 'server_key_file')]) {
+
         stage('Authorize DevHub') {
-             rc = command "sfdx force:auth:jwt:grant --instanceurl ${SF_INSTANCE_URL} --clientid ${SF_CONSUMER_KEY} --username ${SF_USERNAME} --jwtkeyfile ${server_key_file} --setdefaultdevhubusername --setalias ${SF_DEV_HUB_ALIAS}"
-             if (rc != 0) {
-                 error 'Salesforce dev hub org authorization failed.'
-             }
+            try{
+                rc = sh "sfdx force:auth:jwt:grant --instanceurl ${SF_INSTANCE_URL} --clientid ${SF_CONSUMER_KEY} --username ${SF_USERNAME} --jwtkeyfile ${server_key_file} --setdefaultdevhubusername --setalias ${SF_DEV_HUB_ALIAS}"             
+            }
+            catch(exception){
+                if(exception){
+                currentBuild.result = "FAILED"
+                throw exception
+                  }
+            }
          }
-        }
 
-    stage('Verify Featurebranch'){
-        properties([
-            parameters([
-                string(name:'Featurebranchname',defaultValue:'Feature/MS-1.0.0', description:'Enter Feature Branch Name'),
-            ])
-        ])
-    }
-
-    
-    stage("Validate Main Package"){
-        try{
-            sh "sfdx force:source:deploy -p ${PKG_PATH} --targetusername ${SF_USERNAME} --testlevel RunLocalTests -c"
+        stage("Validate Main Package"){
+            try{
+                rc = sh "cd sfdx-source && sfdx force:source:deploy -p ${PKG} -w 100 -u ${SF_USERNAME} --testlevel RunLocalTests -c"
+            // sh "sfdx force:source:deploy -p ${PKG} --targetusername ${SF_USERNAME} --testlevel RunLocalTests -c"
                 //"sfdx force:source:deploy -p ${PACKAGE_PATH} -l RunLocalTests -w 100 -u ${VERIFICATION_ORG_ALIAS} --verbose" 
                 //sh "sfdx force:source:deploy -p force-app -w 100 -u ${VERIFICATION_ORG_ALIAS}"
                 //sh "sfdx force:mdapi:deploy -d externalPackage -w 100 -u ${VERIFICATION_ORG_ALIAS}"
             }catch(exception){
                 // Since we are using try..catch block have to fail the build manually
-                currentBuild.result = "FAILED"
+                if(exception){
+                    currentBuild.result = "FAILED"
                 throw exception
-            }
                 }
+            }
+        }
+        }
 
 }
