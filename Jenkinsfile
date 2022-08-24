@@ -15,6 +15,11 @@ node{
     println SF_DEV_HUB_ALIAS
     println SF_INSTANCE_URL
 
+    
+    stage('checkout source') {
+        checkout scm
+        echo 'this is adarsha'
+    }
     stage('Identify Branch'){
         def branchName=BRANCH_NAME.split('/');
         if(branchName[0] != 'feature'){
@@ -26,12 +31,7 @@ node{
             }
         }
 
-    stage('checkout source') {
-        checkout scm
-        echo 'this is adarsha'
-    }
     withCredentials([file(credentialsId: SERVER_KEY_CREDENTALS_ID, variable: 'server_key_file')]) {
-
         stage('Authorize DevHub') {
             try{
                 rc = sh "sfdx force:auth:jwt:grant --instanceurl ${SF_INSTANCE_URL} --clientid ${SF_CONSUMER_KEY} --username ${SF_USERNAME} --jwtkeyfile ${server_key_file} --setdefaultdevhubusername --setalias ${SF_DEV_HUB_ALIAS}"             
